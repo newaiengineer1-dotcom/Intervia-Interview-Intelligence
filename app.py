@@ -1540,45 +1540,21 @@ with left:
             # ------------------------------------------------
 
             if use_research:
-
-                try:
-
-                    gateway = GroqGateway(
-                        api_key
-                    )
-
-                    st.session_state.research = (
-                        ResearchAgent(
-                            gateway
-                        ).run(
-                            target_role,
-                            (
-                                "Not specified — grounded "
-                                "in CV/JD and role context"
-                            ),
-                            safe_clamp(
-                                final_jd,
-                                6000,
-                            ),
-                            company=company,
-                            company_track=company_track,
-                        )
-                    )
-
-                except Exception:
-
-                    st.session_state.research = None
-
-                    st.warning(
-                        "Company / role analysis is temporarily "
-                        "unavailable. The interview will continue "
-                        "using the CV and Job Description."
-                    )
-
-            st.success(
-                "Evidence pack created. Candidate evidence, "
-                "JD requirements and role analysis remain separate."
-            )
+    try:
+        gateway = GroqGateway(api_key)
+        st.session_state.research = ResearchAgent(gateway).run(
+            target_role,
+            "Not specified — grounded in CV/JD and role context",
+            safe_clamp(final_jd, 6000),
+            company=company,
+            company_track=company_track,
+        )
+    except Exception:
+        st.session_state.research = None
+        st.warning(
+            "Company / role analysis is temporarily unavailable. "
+            "The interview will continue using the CV and Job Description."
+        )
 
 
 # ============================================================
