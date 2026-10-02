@@ -1538,24 +1538,73 @@ with left:
             # ------------------------------------------------
             # OPTIONAL COMPANY / ROLE RESEARCH
             # ------------------------------------------------
+# Optional company research
+if st.button("Build Evidence Pack", type="primary", use_container_width=True):
 
-            if use_research:
-    try:
-        gateway = GroqGateway(api_key)
-        st.session_state.research = ResearchAgent(gateway).run(
-            target_role,
-            "Not specified — grounded in CV/JD and role context",
-            safe_clamp(final_jd, 6000),
-            company=company,
-            company_track=company_track,
-        )
-    except Exception:
-        st.session_state.research = None
-        st.warning(
-            "Company / role analysis is temporarily unavailable. "
-            "The interview will continue using the CV and Job Description."
-        )
+    if not api_key:
+        st.error("Enter your Groq API key first.")
 
+    elif not cv_file:
+        st.error("Please upload your CV / Resume.")
+
+    elif not (jd_file or jd_text.strip()):
+        st.error("Please upload a Job Description or paste it into the JD box.")
+
+    else:
+        with st.spinner("Building your evidence intelligence..."):
+
+            try:
+                cv_text = extract_uploaded_text(cv_file)
+
+                if jd_file:
+                    jd_content = extract_uploaded_text(jd_file)
+                else:
+                    jd_content = jd_text.strip()
+
+                evidence_agent = EvidenceAgent()
+
+                evidence_result = evidence_agent.build(
+                    cv_text=cv_text,
+                    jd_text=jd_content,
+                    target_role=target_role,
+                    company=company,
+                )
+
+                st.session_state.evidence = evidence_result
+                st.session_state.cv_filename = cv_file.name
+
+                if jd_file:
+                    st.session_state.jd_filename = jd_file.name
+                else:
+                    st.session_state.jd_filename = "Pasted Job Description"
+
+                # Optional company research
+                if use_research:
+                    try:
+                        gateway = GroqGateway(api_key)
+
+                        research_agent = ResearchAgent(gateway)
+
+                        research_result = research_agent.run(
+                            company=company,
+                            role=target_role,
+                            categories=categories,
+                        )
+
+                        st.session_state.research = research_result
+
+                    except Exception as research_error:
+                        st.session_state.research = ""
+                        st.warning(
+                            f"Company research was skipped: {research_error}"
+                        )
+
+                st.success("Evidence pack built successfully.")
+
+            except Exception as error:
+                st.error(
+                    f"Evidence pack creation failed: {error}"
+                )
 
 # ============================================================
 # AGENT COCKPIT
