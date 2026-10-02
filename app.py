@@ -1579,32 +1579,23 @@ if st.button("Build Evidence Pack", type="primary", use_container_width=True):
                     st.session_state.jd_filename = "Pasted Job Description"
 
                 # Optional company research
+                                # Optional company research
                 if use_research:
                     try:
                         gateway = GroqGateway(api_key)
-
                         research_agent = ResearchAgent(gateway)
 
-                        research_result = research_agent.run(
+                        st.session_state.research = research_agent.run(
                             company=company,
                             role=target_role,
                             categories=categories,
                         )
-
-                        st.session_state.research = research_result
 
                     except Exception as research_error:
                         st.session_state.research = ""
                         st.warning(
                             f"Company research was skipped: {research_error}"
                         )
-
-                st.success("Evidence pack built successfully.")
-
-            except Exception as error:
-                st.error(
-                    f"Evidence pack creation failed: {error}"
-                )
 
 # ============================================================
 # AGENT COCKPIT
